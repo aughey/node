@@ -1998,7 +1998,7 @@ static Handle<Value> DebugProcess(const Arguments& args);
 static Handle<Value> DebugPause(const Arguments& args);
 static Handle<Value> DebugEnd(const Arguments& args);
 
-Handle<Object> SetupProcessObject(int argc, char *argv[]) {
+static Handle<Object> SetupProcessObject(int argc, char *argv[]) {
   HandleScope scope;
 
   int i, j;
@@ -2149,7 +2149,7 @@ static void SignalExit(int signal) {
 }
 
 
-void Load(Handle<Object> process_l) {
+static void Load(Handle<Object> process_l) {
   // Compile, execute the src/node.js file. (Which was included as static C
   // string in node_natives.h. 'natve_node' is the string containing that
   // source code.)
@@ -2551,7 +2551,7 @@ static Handle<Value> DebugEnd(const Arguments& args) {
 }
 
 
-char** Init(int argc, char *argv[]) {
+static char** Init(int argc, char *argv[]) {
   // Initialize prog_start_time to get relative uptime.
   uv_uptime(&prog_start_time);
 
@@ -2640,7 +2640,7 @@ char** Init(int argc, char *argv[]) {
 }
 
 
-void EmitExit(v8::Handle<v8::Object> process_l) {
+static void EmitExit(v8::Handle<v8::Object> process_l) {
   // process.emit('exit')
   Local<Value> emit_v = process_l->Get(String::New("emit"));
   assert(emit_v->IsFunction());
