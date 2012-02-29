@@ -1224,7 +1224,7 @@ static void ReportException(TryCatch &try_catch, bool show_line) {
 }
 
 // Executes a str within the current v8 context.
-Local<Value> ExecuteString(Handle<String> source, Handle<Value> filename) {
+static Local<Value> ExecuteString(Handle<String> source, Handle<Value> filename) {
   HandleScope scope;
   TryCatch try_catch;
 
@@ -1427,7 +1427,7 @@ static Handle<Value> SetUid(const Arguments& args) {
 #endif // __POSIX__
 
 
-v8::Handle<v8::Value> Exit(const v8::Arguments& args) {
+static v8::Handle<v8::Value> Exit(const v8::Arguments& args) {
   HandleScope scope;
   exit(args[0]->IntegerValue());
   return Undefined();
@@ -1473,7 +1473,7 @@ static Handle<Value> Uptime(const Arguments& args) {
 }
 
 
-v8::Handle<v8::Value> UVCounters(const v8::Arguments& args) {
+static v8::Handle<v8::Value> UVCounters(const v8::Arguments& args) {
   HandleScope scope;
 
   uv_counters_t* c = &uv_default_loop()->counters;
@@ -1505,7 +1505,7 @@ v8::Handle<v8::Value> UVCounters(const v8::Arguments& args) {
 }
 
 
-v8::Handle<v8::Value> MemoryUsage(const v8::Arguments& args) {
+static v8::Handle<v8::Value> MemoryUsage(const v8::Arguments& args) {
   HandleScope scope;
 
   size_t rss;
@@ -1538,7 +1538,7 @@ v8::Handle<v8::Value> MemoryUsage(const v8::Arguments& args) {
 }
 
 
-Handle<Value> Kill(const Arguments& args) {
+static Handle<Value> Kill(const Arguments& args) {
   HandleScope scope;
 
   if (args.Length() != 2) {
@@ -1562,7 +1562,7 @@ typedef void (UV_DYNAMIC* extInit)(Handle<Object> exports);
 
 // DLOpen is node.dlopen(). Used to load 'module.node' dynamically shared
 // objects.
-Handle<Value> DLOpen(const v8::Arguments& args) {
+static Handle<Value> DLOpen(const v8::Arguments& args) {
   HandleScope scope;
   char symbol[1024], *base, *pos;
   uv_lib_t lib;
@@ -1730,8 +1730,8 @@ static void DebugBreakMessageHandler(const v8::Debug::Message& message) {
 }
 
 
-Persistent<Object> binding_cache;
-Persistent<Array> module_load_list;
+static Persistent<Object> binding_cache;
+static Persistent<Array> module_load_list;
 
 static Handle<Value> Binding(const Arguments& args) {
   HandleScope scope;
@@ -2356,7 +2356,7 @@ static void RegisterSignalHandler(int signal, void (*handler)(int)) {
 }
 
 
-Handle<Value> DebugProcess(const Arguments& args) {
+static Handle<Value> DebugProcess(const Arguments& args) {
   HandleScope scope;
 
   if (args.Length() != 1) {
@@ -2379,7 +2379,7 @@ Handle<Value> DebugProcess(const Arguments& args) {
 
 
 #ifdef _WIN32
-DWORD WINAPI EnableDebugThreadProc(void* arg) {
+static DWORD WINAPI EnableDebugThreadProc(void* arg) {
   // Break once process will return execution to v8
   if (!debugger_running) {
     for (int i = 0; i < 1; i++) {
