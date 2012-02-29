@@ -77,7 +77,31 @@
 
 namespace node {
 
+// Start will initialize v8 and run the event loop until
+// there are nothing in the event loop to process.
 int Start(int argc, char *argv[]);
+
+// If the application needs more control over the event processing,
+// one can use the functions below to run the event loop manually.
+// Ex:
+// struct node_context_struct *nodecontext = node::Initialize(argc, argv);
+// do {
+//   node::HandleEvents(nodecontext);
+// } while(node::Wait(nodecontext));
+// node::Destroy(nodecontext);
+struct node_context_struct {
+	v8::Persistent<v8::Context> context;
+	v8::Persistent<v8::Object> process;
+//	v8::Locker locker;
+};
+// Initialize the node context.
+struct node_context_struct *Initialize(int argc, char *argv[]);
+// Handle any pending events from the event loop.
+void HandleEvents(struct node_context_struct *);
+// Wait for IO or timers in the event loop to complete (this can block).
+int Wait(struct node_context_struct *);
+// Destroy a node_context_struct that was initialized.
+void Destroy(struct node_context_struct *);
 
 #define NODE_PSYMBOL(s) \
   v8::Persistent<v8::String>::New(v8::String::NewSymbol(s))

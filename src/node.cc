@@ -2653,47 +2653,66 @@ static void EmitExit(v8::Handle<v8::Object> process_l) {
   }
 }
 
+struct node_context_struct *Initialize(int argc, char *argv[])
+{
+	struct node_context_struct *nodecontext = new struct node_context_struct;
 
-int Start(int argc, char *argv[]) {
   // This needs to run *before* V8::Initialize()
   argv = Init(argc, argv);
 
   V8::Initialize();
-  Persistent<Context> context;
   {
-    Locker locker;
     HandleScope handle_scope;
 
     // Create the one and only Context.
-    Persistent<Context> context = Context::New();
-    Context::Scope context_scope(context);
+    nodecontext->context = Context::New();
+    nodecontext->context->Enter();
 
-    Handle<Object> process_l = SetupProcessObject(argc, argv);
-    v8_typed_array::AttachBindings(context->Global());
+		nodecontext->process = v8::Persistent<v8::Object>::New(SetupProcessObject(argc, argv));
+    v8_typed_array::AttachBindings(nodecontext->context->Global());
 
     // Create all the objects, load modules, do everything.
     // so your next reading stop should be node::Load()!
-    Load(process_l);
-
-    // All our arguments are loaded. We've evaluated all of the scripts. We
-    // might even have created TCP servers. Now we enter the main eventloop. If
-    // there are no watchers on the loop (except for the ones that were
-    // uv_unref'd) then this function exits. As long as there are active
-    // watchers, it blocks.
-    uv_run(uv_default_loop());
-
-    EmitExit(process_l);
-#ifndef NDEBUG
-    context.Dispose();
-#endif
+    Load(nodecontext->process);
   }
 
-#ifndef NDEBUG
-  // Clean up.
-  V8::Dispose();
-#endif  // NDEBUG
+	return nodecontext;
+}
 
-  return 0;
+void HandleEvents(struct node_context_struct *)
+{
+}
+
+// Wait for IO or timers in the event loop to complete (this can block)
+int Wait(struct node_context_struct *)
+{
+	uv_run(uv_default_loop());
+	return 0;
+}
+
+// Destroy a node_context_struct that was initialized.
+void Destroy(struct node_context_struct *nodecontext)
+{
+	EmitExit(nodecontext->process);
+
+	nodecontext->context->Exit();
+#ifndef NDEBUG
+	nodecontext->context.Dispose();
+	nodecontext->process.Dispose();
+	nodecontext->context.Clear();
+	nodecontext->process.Clear();
+	V8::Dispose();
+#endif
+	delete nodecontext;
+}
+
+int Start(int argc, char *argv[]) {
+	struct node_context_struct *nodecontext = node::Initialize(argc, argv);
+	do {
+		node::HandleEvents(nodecontext);
+	} while(node::Wait(nodecontext));
+	node::Destroy(nodecontext);
+	return 0;
 }
 
 
